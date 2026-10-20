@@ -18,6 +18,14 @@ export class ResponseGenerator {
     // Determine the active emotion signal (user correction takes total precedence)
     const activeEmotion = (correctedEmotion || (emotionEnabled ? emotion : undefined))?.toLowerCase();
 
+    // Emotions considered "low / heavy" — always suggest an activity for these
+    const LOW_EMOTION_SET = new Set([
+      'sadness', 'overwhelmed', 'anxious', 'frustration', 'tired',
+      'stress', 'stressed', 'depressed', 'sad', 'anxiety', 'fear',
+      'fearful', 'upset', 'lonely', 'hopeless', 'numb',
+    ]);
+    const isLowOrStressed = !!(activeEmotion && LOW_EMOTION_SET.has(activeEmotion));
+
     // 1. If emotion analysis is disabled, give open, grounded listening response
     if (!emotionEnabled) {
       return this.buildNonEmotionResponse(transcript, tone);
@@ -33,20 +41,12 @@ export class ResponseGenerator {
       };
     }
 
-    // 3. User confirmed or corrected emotion
-    const isLowOrStressed =
-      activeEmotion === 'sadness' ||
-      activeEmotion === 'overwhelmed' ||
-      activeEmotion === 'anxious' ||
-      activeEmotion === 'frustration' ||
-      activeEmotion === 'tired' ||
-      activeEmotion === 'stress' ||
-      activeEmotion === 'depressed';
-
+    // 3. Always recommend an activity for low states (pending, confirmed, or corrected)
     let suggestedActivity: MicroActivity | undefined;
-    if (isLowOrStressed && (feedbackStatus === 'confirmed' || feedbackStatus === 'corrected')) {
+    if (isLowOrStressed) {
       suggestedActivity = ActivityService.getRecommendedActivity(activeEmotion);
     }
+
 
     const message = this.craftEmpathicMessage({
       activeEmotion,

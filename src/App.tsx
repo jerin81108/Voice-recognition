@@ -8,6 +8,7 @@ import { MicroActivityWidget } from './components/MicroActivityWidget';
 import { CrisisSupportModal } from './components/CrisisSupportModal';
 import { ModelLimitationsModal } from './components/ModelLimitationsModal';
 import { SettingsModal } from './components/SettingsModal';
+import { DatasetInsightsPanel } from './components/DatasetInsightsPanel';
 
 import { AudioRecorderService } from './services/audioRecorder';
 import type { RecordingState } from './services/audioRecorder';
@@ -17,6 +18,8 @@ import { EmotionEstimator } from './services/emotionEstimator';
 import { ResponseGenerator } from './services/responseGenerator';
 import { SafetyService } from './services/safetyService';
 import { DiagnosticsLogger } from './services/diagnosticsLogger';
+import { DatasetService } from './services/datasetService';
+import { MLModelService } from './services/mlModelService';
 import type {
   AcousticFeatures,
   AppSettings,
@@ -77,6 +80,9 @@ export const App: React.FC = () => {
   const [response, setResponse] = useState<SupportiveResponse | undefined>(undefined);
   const [activeActivity, setActiveActivity] = useState<MicroActivity | undefined>(undefined);
   const [crisisAlertMessage, setCrisisAlertMessage] = useState<string | undefined>(undefined);
+  // ML model state
+  const [mlModelActive, setMlModelActive] = useState(false);
+  const [datasetVersion, setDatasetVersion] = useState(0); // bump to refresh panel
 
   // Services references
   const recorderRef = useRef<AudioRecorderService | null>(null);
@@ -251,20 +257,54 @@ export const App: React.FC = () => {
         }
       }
 
-      // 3. Emotion Estimation (Only if enabled in settings)
+      // 3. Emotion Estimation — blend rule-based + ML model
       let estimate: EmotionEstimate | undefined = undefined;
       if (settings.emotionAnalysisEnabled) {
+        // Rule-based baseline
         estimate = EmotionEstimator.estimate(acousticMetrics, textContent);
+
+        // Try ML model inference if model has been trained
+        if (acousticMetrics && MLModelService.canTrain()) {
+          try {
+            const mlResult = await MLModelService.predict(acousticMetrics);
+            if (mlResult && mlResult.confidence > estimate.confidence) {
+              // ML is more confident — blend its scores into the estimate
+              const blendedScores = { ...estimate.allScores };
+              for (const [em, prob] of Object.entries(mlResult.allScores)) {
+                const key = em as EmotionType;
+                blendedScores[key] = (blendedScores[key] * 0.4) + (prob * 0.6);
+              }
+              estimate = {
+                ...estimate,
+                primaryEmotion: mlResult.emotion,
+                confidence: mlResult.confidence * 0.9, // keep tentative
+                allScores: blendedScores,
+                rationale: estimate.rationale + ` · ML model (${(mlResult.confidence * 100).toFixed(0)}% confident) supports this reading.`,
+              };
+              setMlModelActive(true);
+              console.log('%c[ML] Model improved emotion estimate → ' + mlResult.emotion, 'color:#a78bfa;font-weight:bold');
+            }
+          } catch (mlErr) {
+            console.warn('[ML] Inference skipped:', mlErr);
+          }
+        }
+
         setEmotionEstimate(estimate);
       } else {
         setEmotionEstimate(undefined);
       }
 
       // 4. Generate Initial Supportive Response
+      // Always provide an activity suggestion when emotion is negative,
+      // even before user confirms (so recommendations are never missing)
+      const LOW_EMOTIONS = ['sadness', 'overwhelmed', 'anxious', 'frustration', 'tired', 'stress', 'depressed'];
+      const pendingEmotion = estimate?.primaryEmotion;
+      const shouldSuggestNow = pendingEmotion && LOW_EMOTIONS.includes(pendingEmotion);
+
       const initialResponse = ResponseGenerator.generateResponse({
         transcript: textContent,
-        emotion: estimate?.primaryEmotion,
-        feedbackStatus: 'pending',
+        emotion: pendingEmotion,
+        feedbackStatus: shouldSuggestNow ? 'confirmed' : 'pending',
         tone: settings.supportiveTone,
         emotionEnabled: settings.emotionAnalysisEnabled,
       });
@@ -272,9 +312,10 @@ export const App: React.FC = () => {
       setResponse(initialResponse);
       if (initialResponse.suggestedActivity) {
         setActiveActivity(initialResponse.suggestedActivity);
+        console.log('%c[Recommendation] Activity suggested:', 'color:#34d399;font-weight:bold', initialResponse.suggestedActivity.title);
       }
 
-      // Log full suggestion pipeline and data breakdown to browser console
+      // Log full pipeline to browser console
       DiagnosticsLogger.logPipelineRun({
         audioBlob: blob,
         transcript: textContent,
@@ -311,6 +352,22 @@ export const App: React.FC = () => {
       setActiveActivity(newResponse.suggestedActivity);
     }
 
+    // ── Dataset: save confirmed sample ───────────────────────────────────
+    if (acoustics) {
+      DatasetService.addSample({
+        acoustics,
+        transcript,
+        estimate: emotionEstimate,
+        confirmedLabel: emotionEstimate.primaryEmotion,
+        language: settings.speechLanguage || 'en-US',
+      });
+      setDatasetVersion((v) => v + 1);
+      // Auto-train if enough samples
+      if (MLModelService.canTrain()) {
+        MLModelService.train().then((r) => { if (r) setMlModelActive(true); });
+      }
+    }
+
     DiagnosticsLogger.logPipelineRun({
       audioBlob,
       transcript,
@@ -338,6 +395,24 @@ export const App: React.FC = () => {
     setResponse(newResponse);
     if (newResponse.suggestedActivity) {
       setActiveActivity(newResponse.suggestedActivity);
+    }
+
+    // ── Dataset: save correction as labelled training sample ─────────────
+    if (acoustics && emotionEstimate) {
+      const validEmotions: EmotionType[] = ['calm','sadness','frustration','excitement','overwhelmed','anxious','tired','neutral'];
+      const cleanLabel: EmotionType = validEmotions.includes(correctedEmotion.toLowerCase() as EmotionType)
+        ? (correctedEmotion.toLowerCase() as EmotionType)
+        : 'neutral';
+      DatasetService.addSample({
+        acoustics,
+        transcript,
+        estimate: emotionEstimate,
+        confirmedLabel: cleanLabel,
+        language: settings.speechLanguage || 'en-US',
+      });
+      setDatasetVersion((v) => v + 1);
+      // Corrections are the most valuable training signal — always re-train
+      MLModelService.train().then((r) => { if (r) setMlModelActive(true); });
     }
 
     DiagnosticsLogger.logPipelineRun({
@@ -492,6 +567,23 @@ export const App: React.FC = () => {
             onSelectDifferent={(newActivity) => setActiveActivity(newActivity)}
             onClose={() => setActiveActivity(undefined)}
           />
+        )}
+
+        {/* Dataset & ML Model Panel — always shown */}
+        <DatasetInsightsPanel
+          key={datasetVersion}
+          onDatasetUpdated={() => setDatasetVersion((v) => v + 1)}
+        />
+
+        {/* ML model active indicator */}
+        {mlModelActive && (
+          <div style={{
+            marginTop: '0.5rem', padding: '0.45rem 0.9rem', borderRadius: '8px',
+            background: 'rgba(167, 139, 250, 0.08)', border: '1px solid rgba(167, 139, 250, 0.2)',
+            fontSize: '0.75rem', color: '#c4b5fd', textAlign: 'center',
+          }}>
+            🧠 ML model is active — emotion estimates are now personalised to your voice patterns.
+          </div>
         )}
       </main>
 
