@@ -257,20 +257,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 outline: 'none',
               }}
             >
-              <option value="en-US">English (United States)</option>
-              <option value="en-GB">English (United Kingdom)</option>
-              <option value="en-IN">English (India)</option>
-              <option value="es-ES">Español (Spanish)</option>
-              <option value="fr-FR">Français (French)</option>
-              <option value="de-DE">Deutsch (German)</option>
-              <option value="hi-IN">हिन्दी (Hindi)</option>
-              <option value="zh-CN">中文 (Mandarin Chinese - Simplified)</option>
-              <option value="ja-JP">日本語 (Japanese)</option>
-              <option value="pt-BR">Português (Portuguese - Brazil)</option>
-              <option value="ar-SA">العربية (Arabic)</option>
-              <option value="it-IT">Italiano (Italian)</option>
-              <option value="ko-KR">한국어 (Korean)</option>
-              <option value="ru-RU">Русский (Russian)</option>
+              <optgroup label="🇮🇳 Indian Languages">
+                <option value="ta-IN">தமிழ் — Tamil</option>
+                <option value="hi-IN">हिन्दी — Hindi</option>
+                <option value="te-IN">తెలుగు — Telugu</option>
+                <option value="kn-IN">ಕನ್ನಡ — Kannada</option>
+                <option value="ml-IN">മലയാളം — Malayalam</option>
+                <option value="mr-IN">मराठी — Marathi</option>
+                <option value="bn-IN">বাংলা — Bengali (India)</option>
+                <option value="gu-IN">ગુજરાતી — Gujarati</option>
+                <option value="pa-IN">ਪੰਜਾਬੀ — Punjabi</option>
+                <option value="ur-IN">اردو — Urdu (India)</option>
+                <option value="en-IN">English (India)</option>
+              </optgroup>
+              <optgroup label="🌍 International Languages">
+                <option value="en-US">English (United States)</option>
+                <option value="en-GB">English (United Kingdom)</option>
+                <option value="es-ES">Español (Spanish)</option>
+                <option value="fr-FR">Français (French)</option>
+                <option value="de-DE">Deutsch (German)</option>
+                <option value="zh-CN">中文 (Mandarin Simplified)</option>
+                <option value="ja-JP">日本語 (Japanese)</option>
+                <option value="pt-BR">Português (Brazil)</option>
+                <option value="ar-SA">العربية (Arabic)</option>
+                <option value="it-IT">Italiano (Italian)</option>
+                <option value="ko-KR">한국어 (Korean)</option>
+                <option value="ru-RU">Русский (Russian)</option>
+              </optgroup>
             </select>
           </div>
 

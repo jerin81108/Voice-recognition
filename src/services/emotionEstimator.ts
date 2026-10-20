@@ -12,38 +12,80 @@ interface EmotionLexicon {
 
 const EMOTION_KEYWORDS: EmotionLexicon = {
   sadness: [
+    // English
     'sad', 'unhappy', 'down', 'crying', 'depressed', 'gloomy', 'lonely', 'heartbroken', 'hopeless',
-    'miss', 'lost', 'sorrow', 'hurt', 'hurting', 'empty', 'grief', 'tearful', 'miserable', 'numb'
+    'miss', 'lost', 'sorrow', 'hurt', 'hurting', 'empty', 'grief', 'tearful', 'miserable', 'numb',
+    // Tamil (transliterated as ASR outputs roman or native script)
+    'ଵலி', 'அழுது', 'தனிமை', 'ஜீவிதமே வேண்டாம்', 'ஈருக்கிரென்',
+    'vali', 'azhuhu', 'azhugirom', 'dhaniyam illai', 'thanimai', 'varutha', 'vaedhana'
   ],
   frustration: [
+    // English
     'frustrated', 'annoyed', 'angry', 'mad', 'irritated', 'fed up', 'hate', 'furious', 'sick of',
-    'unfair', 'stuck', 'impatient', 'bothering', 'grr', 'pissed', 'resentful', 'snapped'
+    'unfair', 'stuck', 'impatient', 'bothering', 'grr', 'pissed', 'resentful', 'snapped',
+    // Tamil
+    'கோபமான', 'கேவலமான', 'குழப்பமான', 'எரிச்சலான',
+    'kopam', 'kopamana', 'kevalama', 'erichal', 'paithiyam', 'venmana'
   ],
   excitement: [
+    // English
     'excited', 'happy', 'great', 'awesome', 'amazing', 'thrilled', 'yay', 'wonderful', 'proud',
-    'fantastic', 'celebrate', 'delighted', 'energetic', 'love it', 'joyful', 'pumped', 'hyped'
+    'fantastic', 'celebrate', 'delighted', 'energetic', 'love it', 'joyful', 'pumped', 'hyped',
+    // Tamil
+    'சந்தோஷமான', 'மகிழ்ச்சி', 'மகிழ்ச்சியான',
+    'sandhosham', 'magizchi', 'magilchi', 'nanmai', 'anandham', 'superba', 'arumai'
   ],
   calm: [
+    // English
     'calm', 'peaceful', 'relaxed', 'okay', 'fine', 'grounded', 'content', 'quiet', 'rested',
-    'steady', 'breathe', 'centered', 'gentle', 'serene', 'tranquil', 'chill', 'soothing'
+    'steady', 'breathe', 'centered', 'gentle', 'serene', 'tranquil', 'chill', 'soothing',
+    // Tamil
+    'அமைதியான', 'சீரான', 'ஸமா஧ானமான',
+    'amaidhiyana', 'serana', 'samadhanam', 'nimmadhi', 'oray', 'bayamillai'
   ],
   overwhelmed: [
+    // English
     'overwhelmed', 'too much', 'swamped', 'drowning', 'cannot handle', 'burden', 'stress', 'stressed',
-    'burnout', 'crushed', 'exhausting', 'spinning', 'overload', 'piling up', 'too many things', 'breaking point'
+    'burnout', 'crushed', 'exhausting', 'spinning', 'overload', 'piling up', 'too many things', 'breaking point',
+    // Tamil
+    'மிகவும் கஷ்டமான', 'செய்ய முடியவில்லை',
+    'migavum kashtam', 'seiya mudiyavillai', 'thangala', 'paaram', 'stress aagirean'
   ],
   anxious: [
+    // English
     'anxious', 'nervous', 'worried', 'panic', 'scared', 'fear', 'dread', 'tense', 'restless',
-    'uneasy', 'frightened', 'overthinking', 'jitters', 'racing thoughts', 'apprehensive', 'on edge'
+    'uneasy', 'frightened', 'overthinking', 'jitters', 'racing thoughts', 'apprehensive', 'on edge',
+    // Tamil
+    'பயமான', 'பதற்றமான', 'கவலை', 'வெருப்பமான',
+    'bayamana', 'padhrama', 'kavalai', 'tension aagirean', 'nerveosa'
   ],
   tired: [
+    // English
     'tired', 'exhausted', 'sleepy', 'drained', 'fatigued', 'heavy', 'no energy', 'worn out',
-    'sleep', 'rest', 'lethargic', 'sluggish', 'depleted', 'wiped out', 'run down'
+    'sleep', 'rest', 'lethargic', 'sluggish', 'depleted', 'wiped out', 'run down',
+    // Tamil
+    'களைப்பான', 'தூக்கமான', 'சோர்வான',
+    'kalaipu', 'kalappu', 'thugamana', 'sorvana', 'oivu vendam', 'oivu thevaippadugirean'
   ],
 };
 
-const NEGATION_WORDS = ['not', "n't", 'never', 'barely', 'hardly', 'no longer', 'cannot', "can't"];
-const INTENSIFIER_WORDS = ['very', 'extremely', 'so', 'really', 'super', 'completely', 'totally', 'deeply', 'terribly'];
-const COGNITIVE_LOAD_PHRASES = ['too much', 'swamped', 'piling up', 'cannot keep up', 'head spinning', 'burnout', 'overload'];
+const NEGATION_WORDS = [
+  // English
+  'not', "n't", 'never', 'barely', 'hardly', 'no longer', 'cannot', "can't",
+  // Tamil transliterated negations
+  'illai', 'mudiyavillai', 'vendam', 'inda', 'onnum illai',
+];
+const INTENSIFIER_WORDS = [
+  // English
+  'very', 'extremely', 'so', 'really', 'super', 'completely', 'totally', 'deeply', 'terribly',
+  // Tamil transliterated intensifiers
+  'romba', 'miga', 'migavum', 'muzhuvathum', 'mikka',
+];
+const COGNITIVE_LOAD_PHRASES = [
+  'too much', 'swamped', 'piling up', 'cannot keep up', 'head spinning', 'burnout', 'overload',
+  // Tamil
+  'seiya mudiyavillai', 'thangala', 'migavum kashtam', 'stress aagirean',
+];
 
 export class EmotionEstimator {
   /**

@@ -2,12 +2,22 @@ import type { EmergencyContact, SafetyEvaluation } from '../types';
 
 // Sensitive / Crisis keyword roots to check calmly and independently of emotion modeling
 const CRISIS_PATTERNS: RegExp[] = [
+  // English
   /\b(suicide|suicidal)\b/i,
   /\b(kill myself|end my life|ending it all|want to die|wish i were dead|better off dead)\b/i,
   /\b(self[-\s]?harm|cut myself|hurting myself|hurt myself|harm myself)\b/i,
   /\b(overdose|hang myself|slit my)\b/i,
   /\b(in immediate danger|someone is hurting me|domestic abuse)\b/i,
   /\b(cannot go on anymore|no reason to live)\b/i,
+  // Tamil — native script patterns (Chrome ASR may output native Unicode for ta-IN)
+  /சாக\s*வேண்டும்|இறந்துவிட\s*வேண்டும்|உயிர்\s*வேண்டாம்/,
+  /என்னை\s*நானே\s*காயப்படுத்திக்\s*கொள்கிறேன்/,
+  /வாழ\s*வேண்டாம்|வாழ்க்கை\s*வேண்டாம்/,
+  // Tamil — transliterated (Manglish / Tanglish) patterns
+  /\b(saaga\s*vendam|saaganum|irandu\s*viduven|uyir\s*vendam)\b/i,
+  /\b(vaazhga\s*vendam|vazhkkai\s*vendam|jeevitham\s*vendam)\b/i,
+  /\b(ennai\s*naane\s*kaayappaduthikiren|en\s*life\s*vendam)\b/i,
+  /\b(thannai\s*thane\s*hurt|hurt\s*pannikiren)\b/i,
 ];
 
 export const REGIONAL_EMERGENCY_CONTACTS: Record<string, EmergencyContact[]> = {
